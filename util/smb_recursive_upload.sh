@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Source path to the Lab ResearchDrive 
+SOURCE="//research.drive.wisc.edu/gluckthaler/"
+
 # Function to display help menu
 show_help() {
     echo "Usage: $0 [OPTIONS]"
@@ -14,7 +17,7 @@ show_help() {
     echo "  -h, --help           Show this help message"
     echo ""
     echo "Example:"
-    echo "  $0 -l magory13/data -r gluckthaler_backup/magory13/data"
+    echo "  $0 -l magory13/data -r analysis_backup/emile/magory13/data"
     echo ""
 }
 
@@ -67,13 +70,12 @@ if [[ "$REMOTE_PATH" != *"$LOCAL_PATH" ]]; then
     exit 1
 fi
 
-# Make sure local and remote directories match
+# Make sure local and remote directories are provided
 if [ -z "$LOCAL_PATH" ] || [ -z "$REMOTE_PATH" ]; then
     show_help
     echo "Error: Both local and remote paths are required."
     exit 1
 fi
-
 
 # Validate local path exists
 if [ ! -d "$LOCAL_PATH" ]; then
@@ -81,18 +83,19 @@ if [ ! -d "$LOCAL_PATH" ]; then
     exit 1
 fi
 
-# Source path to the Lab ResearchDrive 
-SOURCE="//research.drive.wisc.edu/gluckthaler/"
-
 # Function to recursively compare and put files
 recursive_smb_update() {
     local local_path="$1"
     local remote_path="$2"
     
-    # Create remote parent directory if it does not exist
-	if [ "$remote_path" != "." ]; then
-		smbclient -q -k "$SOURCE" -c "mkdir \"$remote_path\"" 2>/dev/null
-	fi
+	# Create remote directory structure more carefully using a loop to create nested directories
+	IFS='/' read -ra DIRS <<< "$remote_path"
+	current_path=""
+	for dir in "${DIRS[@]}"; do
+		current_path+="$dir/"
+		# Attempt to create directory, ignore errors
+		smbclient -q -k "$SOURCE" -c "mkdir \"$current_path\"" 2>/dev/null
+	done
 
     # Find all local files recursively
     find "$local_path" -type f | while read -r local_file; do
