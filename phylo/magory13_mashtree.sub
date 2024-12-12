@@ -1,0 +1,27 @@
+# HTC Submit File
+
+batch_name = "mashtree"
+
+Requirements = (Target.HasCHTCStaging == true)
+ 
+# Provide HTCondor with the name of the Docker container
+container_image = docker://staphb/mashtree:latest
+ 
+# List files that need to be transferred to the job (comma-separated, as needed)
+should_transfer_files = IF_NEEDED
+ 
+# Provide our executable and arguments
+executable = magory13_mashtree.sh
+
+#log = logs/job_mashtree.log
+#error = logs/job_mashtree.err
+#output = logs/job_mashtree.out
+ 
+# Tell HTCondor to transfer output to the analysis directory
+transfer_output_files = ""
+ 
+request_cpus = 12
+request_memory = 48GB
+request_disk = 48GB
+ 
+queue

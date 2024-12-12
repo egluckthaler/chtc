@@ -1,0 +1,56 @@
+# HTCondor Submit File
+
+# Required arguments:
+# email           your email
+# prefix          analysis prefix
+# ome2assembly    2 column tsv with ome, assembly path
+# separator       character separating genomeID from featureID
+# blastdb         path to blast database of all assemblies
+# captainbed      BED file containing coordinates of all captains (output by starfish sketch)
+# threads         number of CPUs
+# outdir          output directory
+# 
+# Usage: 
+# condor_submit email=<str> prefix=<str> ome2assembly=<file> separator=<str> blastdb=<path> captainbed=<file> threads=<int> outdir=<path> starfish_extend.sub 
+# 
+# Output:
+# will output results to $outdir on a per genome basis (must be located in /staging)
+
+# IMPORTANT! Require execute servers that can access /staging and /projects
+Requirements = (Target.HasCHTCStaging == true) && (HasCHTCProjects == true)
+
+# Resource requests
+request_cpus = $(threads)
+request_memory = 48GB
+request_disk = 8GB
+
+# Set notification options (options are Never, Complete, Error or Always)
+notify_user   = $(email)
+notification  = Error
+
+# Name the batch job
+batch_name = "$(prefix)_extend" 
+
+# Provide the container for our software
+universe = container
+container_image = oras://ghcr.io/egluckthaler/starfish:latest
+
+# Provide our executable and arguments
+executable = starfish_extend.sh
+arguments = arguments = $(genome) $(ome2assembly) $(elementbed) $(naves) $(unaffiliatedcaps) $(outdir)
+
+# Track job information (required)
+should_transfer_files = IF_NEEDED
+when_to_transfer_output = ON_EXIT
+transfer_output_files = ""
+
+# List files that need to be transferred to the job (comma-separated, as needed)
+transfer_input_files = /home/gluckthaler/miniconda3/envs/starfish-v1.1/db/duf3723.hmm,/home/gluckthaler/miniconda3/envs/starfish-v1.1/db/duf3723.mycoDB.faa,/home/gluckthaler/miniconda3/envs/starfish-v1.1/db/fre.hmm,/home/gluckthaler/miniconda3/envs/starfish-v1.1/db/fre.mycoDB.faa,/home/gluckthaler/miniconda3/envs/starfish-v1.1/db/myb.hmm,/home/gluckthaler/miniconda3/envs/starfish-v1.1/db/myb.SRG.fa,/home/gluckthaler/miniconda3/envs/starfish-v1.1/db/nlr.hmm,/home/gluckthaler/miniconda3/envs/starfish-v1.1/db/nlr.mycoDB.faa,/home/gluckthaler/miniconda3/envs/starfish-v1.1/db/plp.hmm,/home/gluckthaler/miniconda3/envs/starfish-v1.1/db/plp.mycoDB.faa,/home/gluckthaler/miniconda3/envs/starfish-v1.1/db/YRsuperfamRefs.faa,/home/gluckthaler/miniconda3/envs/starfish-v1.1/db/YRsuperfams.p1-512.hmm
+
+# Job files (uncomment if desired)
+# log = $(prefix)_extend.log
+# output = $(prefix)_extend.out
+# error = $(prefix)_extend.err
+
+# Tell HTCondor to run our job using variables from a file:
+queue genome,assembly from $(ome2assembly)

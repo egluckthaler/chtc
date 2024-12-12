@@ -1,0 +1,49 @@
+# HTCondor Submit File
+
+# Required arguments:
+# email        your email
+# prefix       analysis prefix 
+# fasta_dir    path to directory with fastas
+# threads      number of CPUs
+# 
+# Usage: 
+# condor_submit email=<str> prefix=<str> fasta_dir=<path> threads=<int> orthofinder.sub 
+#
+# Output:
+# will output results to $fasta_dir (must be located in /staging)
+
+# IMPORTANT! Require execute servers that can access /staging
+Requirements = (Target.HasCHTCStaging == true)
+
+# Resource requests
+request_cpus = $(threads)
+request_memory = 32GB
+request_disk = 8GB
+
+# Set notification options (options are Never, Complete, Error or Always)
+notify_user   = $(email)
+notification  = Error
+
+# Name the batch job
+batch_name = "$(prefix)_orthofinder" 
+
+# Provide the container for our software
+universe = container
+container_image = docker://davidemms/orthofinder:latest
+
+# Provide our executable and arguments
+executable = orthofinder.sh
+arguments = $(prefix) $(fasta_dir) $(threads)
+
+# Track job information (required)
+should_transfer_files = IF_NEEDED
+when_to_transfer_output = ON_EXIT
+transfer_output_files = ""
+
+# Job files (uncomment if desired)
+# log = $(prefix)_orthofinder.log
+# output = $(prefix)_orthofinder.out
+# error = $(prefix)_orthofinder.err
+
+# Tell HTCondor to run our job:
+queue
