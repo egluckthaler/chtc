@@ -1,0 +1,49 @@
+# HTCondor Submit File
+
+# Required arguments:
+# email             your email
+# prefix            analysis prefix
+# ome2assemblyGFF   3 column tsv with ome, assembly path, gff path
+# threads           number of CPUs
+# outdir            output directory
+# 
+# Usage: 
+# condor_submit email=<str> prefix=<str> ome2assemblyGFF=<file> threads=<int> outdir=<path> antismash.sub 
+# 
+# Output:
+# will output results to $outdir on a per genome basis (must be located in /staging)
+
+# IMPORTANT! Require execute servers that can access /staging and /projects
+Requirements = (Target.HasCHTCStaging == true) && (HasCHTCProjects == true)
+
+# Resource requests
+request_cpus = $(threads)
+request_memory = 48GB
+request_disk = 8GB
+
+# Set notification options (options are Never, Complete, Error or Always)
+notify_user   = $(email)
+notification  = Error
+
+# Name the batch job
+batch_name = "$(prefix)_antismash" 
+
+# Set universe to vanilla since this is a conda-based analysis
+universe = vanilla
+
+# Provide our executable and arguments
+executable = antismash.sh
+arguments = $(genome) $(assembly) $(gff) $(threads) $(outdir)
+
+# Track job information (required)
+should_transfer_files = IF_NEEDED
+when_to_transfer_output = ON_EXIT
+transfer_output_files = ""
+
+# Job files (uncomment if desired)
+# log = $(prefix)_antismash.log
+# output = $(prefix)_antismash.out
+# error = $(prefix)_antismash.err
+
+# Tell HTCondor to run our job using variables from a file:
+queue genome,assembly,gff from $(ome2assemblyGFF)

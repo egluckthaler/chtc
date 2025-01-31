@@ -1,0 +1,9 @@
+creating mapping indices and window files..
+mapping reads to reference with bwa-mem2..
+ref_seq_len = 58644694
+count = 0, 14824655, 29322347, 43820039, 58644694
+BWT[4936675] = 4
+CP_SHIFT = 6, CP_MASK = 63
+sizeof CP_OCC = 64
+max_occ_ind = 916323
+parsing bam files and calculating coverage
